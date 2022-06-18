@@ -1,10 +1,10 @@
 {
-    "name": "nombre.Tests",
+    "name": "demo-terreno-infinito.Editor.Tests",
     "rootNamespace": "",
     "references": [
         "GUID:0acc523941302664db1f4e527237feb3",
         "GUID:27619889b8ba8c24980f49ee34dbb44a",
-        "GUID:894235dc819d4b942803bb035386d5d0"
+        "GUID:b2b855f0749644447b97ceec5ca0a9dd"
     ],
     "includePlatforms": [
         "Editor"
