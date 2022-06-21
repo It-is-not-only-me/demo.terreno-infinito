@@ -8,18 +8,9 @@ using ItIsNotOnlyMe.MarchingCubes;
  */
 public class Chunk : GenerarDatos
 {
+    public override Bounds Bounds => _bounds;
 
-    public override Bounds Bounds 
-    {
-        get
-        {
-            if (_bounds == null)
-                _bounds = new Bounds(transform.position, _radio);
-            return _bounds;
-        }
-    }
-
-    public override Vector3Int NumeroDePuntosPorEje => _configuracionLOD.numeroDePuntosPorNivelDeDetalle[LOD()];
+    public override Vector3Int NumeroDePuntosPorEje => _configuracionLOD.NumeroDePuntosPorLOD(LOD());
 
     public override bool Actualizar
     {
@@ -45,13 +36,15 @@ public class Chunk : GenerarDatos
             Debug.LogError("Se necesita una forma de determinar el nivel de detalle");
         _lodAnterior = -1;
         _actualizar = true;
+        _bounds = new Bounds(transform.position, _radio);
     }
 
-    private int LOD()
+    private uint LOD()
     {
         int lodActual = _determinarLOD.LOD(transform.position);
         ActualizarLOD(lodActual);
-        return lodActual;
+        //return lodActual;
+        return 0;
     }
 
     private void Update()
@@ -86,16 +79,28 @@ public class Chunk : GenerarDatos
             for (int j = 0; j < puntoPorEje.y; j++)
                 for (int k = 0; k < puntoPorEje.z; k++)
                 {
-                    float x = Mathf.Lerp(0, _bounds.size.x * 2, ((float)i) / (puntoPorEje.x - 1));
-                    float y = Mathf.Lerp(0, _bounds.size.y * 2, ((float)j) / (puntoPorEje.y - 1));
-                    float z = Mathf.Lerp(0, _bounds.size.z * 2, ((float)k) / (puntoPorEje.z - 1));
-
-                    Vector3 posicion = new Vector3(x, y, z) + _bounds.center - _bounds.size;
+                    //Vector3 posicionLocal = PosicionLocal(Bounds.size * 2, puntoPorEje, new Vector3Int(i, j, k));
+                    Vector3 posicionLocal = new Vector3(i, j, k);
+                    Vector3 posicion = posicionLocal + Bounds.center - Bounds.size;
                     float valor = Mathf.PerlinNoise(posicion.x * noiseScale, posicion.z * noiseScale);
                     valor *= 20 - j;
-                    datos[contador++].CargarDatos(posicion, valor);
+                    Debug.Log("Distancia: " + Vector3.Magnitude(posicion));
+                    datos[contador++].CargarDatos(posicion, valor / 10.0f);
                 }
         return datos;
+    }
+
+    private Vector3 PosicionLocal(Vector3 anchoTotal, Vector3Int puntosPorEje, Vector3Int posicion)
+    {
+        Vector3 posicionFinal = Vector3.zero;
+
+        for (int i = 0; i < 3; i++)
+        {
+            float distanciaPorSegmente = anchoTotal[i] / (puntosPorEje[i] - 1);
+            posicionFinal[i] = distanciaPorSegmente * i;
+        }
+
+        return posicionFinal;
     }
 
     private void OnDrawGizmos()

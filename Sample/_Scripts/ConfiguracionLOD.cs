@@ -5,5 +5,10 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "configuracion LOD", menuName = "MarchingCubes/Demo/Configuracion LOD")]
 public class ConfiguracionLOD : ScriptableObject
 {
-    public List<Vector3Int> numeroDePuntosPorNivelDeDetalle;
+    [SerializeField] private List<Vector3Int> _numeroDePuntosPorNivelDeDetalle;
+
+    public Vector3Int NumeroDePuntosPorLOD(uint lod)
+    {
+        return _numeroDePuntosPorNivelDeDetalle[(int)lod];
+    }
 }
