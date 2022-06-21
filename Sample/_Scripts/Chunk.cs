@@ -43,8 +43,7 @@ public class Chunk : GenerarDatos
     {
         int lodActual = _determinarLOD.LOD(transform.position);
         ActualizarLOD(lodActual);
-        //return lodActual;
-        return 0;
+        return (uint)lodActual;
     }
 
     private void Update()
@@ -79,12 +78,10 @@ public class Chunk : GenerarDatos
             for (int j = 0; j < puntoPorEje.y; j++)
                 for (int k = 0; k < puntoPorEje.z; k++)
                 {
-                    //Vector3 posicionLocal = PosicionLocal(Bounds.size * 2, puntoPorEje, new Vector3Int(i, j, k));
-                    Vector3 posicionLocal = new Vector3(i, j, k);
+                    Vector3 posicionLocal = PosicionLocal(Bounds.size * 2, puntoPorEje, new Vector3Int(i, j, k));
                     Vector3 posicion = posicionLocal + Bounds.center - Bounds.size;
                     float valor = Mathf.PerlinNoise(posicion.x * noiseScale, posicion.z * noiseScale);
                     valor *= 20 - j;
-                    Debug.Log("Distancia: " + Vector3.Magnitude(posicion));
                     datos[contador++].CargarDatos(posicion, valor / 10.0f);
                 }
         return datos;
@@ -97,7 +94,7 @@ public class Chunk : GenerarDatos
         for (int i = 0; i < 3; i++)
         {
             float distanciaPorSegmente = anchoTotal[i] / (puntosPorEje[i] - 1);
-            posicionFinal[i] = distanciaPorSegmente * i;
+            posicionFinal[i] = distanciaPorSegmente * posicion[i];
         }
 
         return posicionFinal;
