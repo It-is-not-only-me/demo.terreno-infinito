@@ -23,9 +23,9 @@ public class Chunk : GenerarDatos
     }
 
     [SerializeField] private ConfiguracionLOD _configuracionLOD;
-    [SerializeField] private Vector3 _radio;
 
     private DeterminarLOD _determinarLOD;
+    private Vector3 _radio;
     private Bounds _bounds;
     private int _lodAnterior;
     private bool _actualizar;
@@ -34,9 +34,15 @@ public class Chunk : GenerarDatos
     {
         if (!TryGetComponent(out _determinarLOD))
             Debug.LogError("Se necesita una forma de determinar el nivel de detalle");
+    }
+
+    public void Inicializar(Vector3 posicion, Vector3 radio)
+    {
+        _radio = radio;
+        transform.position = posicion;
         _lodAnterior = -1;
         _actualizar = true;
-        _bounds = new Bounds(transform.position, _radio);
+        _bounds = new Bounds(posicion, _radio);
     }
 
     private uint LOD()
