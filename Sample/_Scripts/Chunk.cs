@@ -87,7 +87,7 @@ public class Chunk : GenerarDatos
                     Vector3 posicionLocal = PosicionLocal(Bounds.size * 2, puntoPorEje, new Vector3Int(i, j, k));
                     Vector3 posicion = posicionLocal + Bounds.center - Bounds.size;
                     float valor = Mathf.PerlinNoise(posicion.x * noiseScale, posicion.z * noiseScale);
-                    valor *= 20 - j;
+                    valor *= 20 - (posicionLocal.y + transform.position.y);
                     datos[contador++].CargarDatos(posicion, valor / 10.0f);
                 }
         return datos;
