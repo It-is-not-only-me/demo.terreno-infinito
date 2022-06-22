@@ -6,6 +6,7 @@ using UnityEngine.Pool;
 public class GeneradorDeChunks : MonoBehaviour
 {
     [SerializeField] private Transform _aSeguir;
+    [SerializeField] private Vector3 _desfase;
     [SerializeField] private GameObject _prefab;
     [SerializeField] private Vector3Int _tamanioTotal;
     [SerializeField] private Vector3 _radio;
@@ -13,12 +14,17 @@ public class GeneradorDeChunks : MonoBehaviour
     private GameObject[,,] _chunks;
     private Vector3Int _tamanioPrevio;
 
+    private Vector3 PosicionASeguir()
+    {
+        return _aSeguir.position + _desfase;
+    }
+
     private void Awake()
     {
         _chunks = new GameObject[_tamanioTotal.x, _tamanioTotal.y, _tamanioTotal.z];
         _tamanioPrevio = _tamanioTotal;
         transform.position = NuevaPosicion();
-        CrearMatriz();
+        RellenarMatriz(_chunks, _tamanioTotal);
     }
 
     private void Update()
@@ -32,58 +38,56 @@ public class GeneradorDeChunks : MonoBehaviour
 
         if (divisionesDeDiferencias != Vector3Int.zero || _tamanioTotal != _tamanioPrevio)
             ActualizarChunks(divisionesDeDiferencias);
+
     }
 
     private Vector3 NuevaPosicion()
     {
-        Vector3 posicion = _aSeguir.position;
+        Vector3 posicion = PosicionASeguir();
         Vector3Int divisiones = Divisiones(posicion);
         for (int i = 0; i < 3; i++)
-            posicion[i] = divisiones[i] * _radio[i];
+            posicion[i] = divisiones[i] * _radio[i] * 2;
         return posicion;
-    }
-
-    private void CrearMatriz()
-    {
-        for (int i = 0; i < _tamanioTotal.x; i++)
-            for (int j = 0; j < _tamanioTotal.y; j++)
-                for (int k = 0; k < _tamanioTotal.z; k++)
-                {
-                    Vector3Int posicionLocal = new Vector3Int(i, j, k);
-                    _chunks[i, j, k] = GenerarChunk(transform.position, posicionLocal);
-                }
     }
 
     private void ActualizarChunks(Vector3Int translacionRelativa)
     {
         GameObject[,,] nuevaIteracion = new GameObject[_tamanioTotal.x, _tamanioTotal.y, _tamanioTotal.z];
-        for (int i = 0; i < _tamanioTotal.x; i++)
-            for (int j = 0; j < _tamanioTotal.y; j++)
-                for (int k = 0; k < _tamanioTotal.z; k++)
-                    nuevaIteracion[i, j, k] = null;
 
         for (int i = 0; i < _tamanioPrevio.x; i++)
             for (int j = 0; j < _tamanioPrevio.y; j++)
                 for (int k = 0; k < _tamanioPrevio.z; k++)
                 {
                     Vector3Int posicionLocal = new Vector3Int(i, j, k);
-                    if (EnRango(posicionLocal, translacionRelativa, _tamanioTotal))
-                        nuevaIteracion[i - translacionRelativa.x, j - translacionRelativa.y, k - translacionRelativa.z] = _chunks[i, j, k];
-                    else
-                        Destroy(_chunks[i, j, k]);
+                    if (EnRango(posicionLocal, translacionRelativa, _tamanioPrevio) && EnRango(posicionLocal, translacionRelativa, _tamanioTotal))
+                    {
+                        nuevaIteracion[i, j, k] = _chunks[i - translacionRelativa.x, j - translacionRelativa.y, k - translacionRelativa.z];
+                        _chunks[i - translacionRelativa.x, j - translacionRelativa.y, k - translacionRelativa.z] = null;
+                    }
                 }
 
-        for (int i = 0; i < _tamanioTotal.x; i++)
-            for (int j = 0; j < _tamanioTotal.y; j++)
-                for (int k = 0; k < _tamanioTotal.z; k++)
-                    if (nuevaIteracion[i, j, k] == null)
-                    {
-                        Vector3Int posicionLocal = new Vector3Int(i, j, k);
-                        nuevaIteracion[i, j, k] = GenerarChunk(transform.position, posicionLocal);
-                    }
+        RellenarMatriz(nuevaIteracion, _tamanioTotal);
+
+        for (int i = 0; i < _tamanioPrevio.x; i++)
+            for (int j = 0; j < _tamanioPrevio.y; j++)
+                for (int k = 0; k < _tamanioPrevio.z; k++)
+                    if (_chunks[i, j, k] != null)
+                        Destroy(_chunks[i, j, k]);
 
         _chunks = nuevaIteracion;
         _tamanioPrevio = _tamanioTotal;
+    }
+
+    private void RellenarMatriz(GameObject[,,] chunks, Vector3Int tamanio)
+    {
+        for (int i = 0; i < tamanio.x; i++)
+            for (int j = 0; j < tamanio.y; j++)
+                for (int k = 0; k < tamanio.z; k++)
+                    if (chunks[i, j, k] == null)
+                    {
+                        Vector3Int posicionLocal = new Vector3Int(i, j, k);
+                        chunks[i, j, k] = GenerarChunk(transform.position, posicionLocal);
+                    }
     }
 
     private GameObject GenerarChunk(Vector3 centro, Vector3Int posicionLocal)
