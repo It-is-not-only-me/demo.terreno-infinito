@@ -6,7 +6,6 @@ using UnityEngine.Pool;
 public class GeneradorDeChunks : MonoBehaviour
 {
     [SerializeField] private Transform _aSeguir;
-    [SerializeField] private Vector3 _desfase;
     [SerializeField] private GameObject _prefab;
     [SerializeField] private Vector3Int _tamanioTotal;
     [SerializeField] private Vector3 _radio;
@@ -16,7 +15,7 @@ public class GeneradorDeChunks : MonoBehaviour
 
     private Vector3 PosicionASeguir()
     {
-        return _aSeguir.position + _desfase;
+        return _aSeguir.position;
     }
 
     private void Awake()
