@@ -42,7 +42,7 @@ public class Chunk : GenerarDatos
         transform.position = posicion;
         _lodAnterior = -1;
         _actualizar = true;
-        _bounds = new Bounds(posicion, _radio);
+        _bounds = new Bounds(posicion, _radio * 2);
     }
 
     private uint LOD()
@@ -79,17 +79,33 @@ public class Chunk : GenerarDatos
         Dato[] datos = new Dato[cantidadDeDatos];
         float noiseScale = 0.05f;
 
+        float masChico = 100;
+        float masGrande = -100;
+
         int contador = 0;
         for (int i = 0; i < puntoPorEje.x; i++)
             for (int j = 0; j < puntoPorEje.y; j++)
                 for (int k = 0; k < puntoPorEje.z; k++)
                 {
-                    Vector3 posicionLocal = PosicionLocal(Bounds.size * 2, puntoPorEje, new Vector3Int(i, j, k));
-                    Vector3 posicion = posicionLocal + Bounds.center - Bounds.size;
-                    float valor = Mathf.PerlinNoise(posicion.x * noiseScale, posicion.z * noiseScale);
-                    valor *= 20 - (posicionLocal.y + transform.position.y);
+                    Vector3 posicionLocal = PosicionLocal(Bounds.size, puntoPorEje, new Vector3Int(i, j, k));
+                    Vector3 posicion = posicionLocal + Bounds.center - Bounds.size / 2;
+
+                    
+                    //float valor = Mathf.PerlinNoise(posicion.x * noiseScale, posicion.z * noiseScale);
+                    //valor *= 15 - (posicionLocal.y + transform.position.y); 
+                    
+                    Vector3 posicionPerlin = posicion * noiseScale + Vector3.one * 300;
+                    float valor = PerlinNoise3D(posicionPerlin);
+
+                    masChico = Mathf.Min(masChico, valor);
+                    masGrande = Mathf.Max(masGrande, valor);
+
                     datos[contador++].CargarDatos(posicion, valor / 10.0f);
                 }
+
+        Debug.Log(masChico);
+        Debug.Log(masGrande);
+
         return datos;
     }
 
@@ -106,8 +122,22 @@ public class Chunk : GenerarDatos
         return posicionFinal;
     }
 
+    private float PerlinNoise3D(Vector3 posicion)
+    {
+        float x = posicion.x, y = posicion.y, z = posicion.z;
+
+        float xy = Mathf.PerlinNoise(x, y);
+        float xz = Mathf.PerlinNoise(x, z);
+        float yz = Mathf.PerlinNoise(y, z);
+        float yx = Mathf.PerlinNoise(y, x);
+        float zx = Mathf.PerlinNoise(z, x);
+        float zy = Mathf.PerlinNoise(z, y);
+
+        return (xy + xz + yz + yx + zx + zy) / 6;
+    }
+
     private void OnDrawGizmos()
     {
-        Gizmos.DrawWireCube(Bounds.center, _radio * 2);
+        Gizmos.DrawWireCube(Bounds.center, Bounds.size);
     }
 }

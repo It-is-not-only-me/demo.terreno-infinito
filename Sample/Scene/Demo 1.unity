@@ -263,8 +263,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _aSeguir: {fileID: 1804357006}
   _prefab: {fileID: 3646306603124034936, guid: 96814f8f5166a624ca8f2eede556e2e3, type: 3}
-  _tamanioTotal: {x: 5, y: 1, z: 5}
-  _radio: {x: 20, y: 20, z: 20}
+  _tamanioTotal: {x: 5, y: 5, z: 5}
+  _radio: {x: 30, y: 30, z: 30}
 --- !u!1 &1785032231
 GameObject:
   m_ObjectHideFlags: 0
