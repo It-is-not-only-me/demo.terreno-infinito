@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class LODPorDistancia : DeterminarLOD
 {
-    [SerializeField] private List<float> _intervalosDeDistancias;
+    [SerializeField] private ConfiguracionLOD _configuracionLOD;
 
     private Transform _aSeguir;
 
@@ -15,14 +15,7 @@ public class LODPorDistancia : DeterminarLOD
     public override int LOD(Vector3 posicion)
     {
         float distanciaActual = Vector3.Distance(posicion, _aSeguir.position);
-        int lod = 0;
-        for (int i = 0; i < _intervalosDeDistancias.Count - 1; i++)
-        {
-            if (distanciaActual < _intervalosDeDistancias[i])
-                break;
-            lod++;
-        }
-        return lod;
+        return (int) _configuracionLOD.DistanciaMaximaPorLOD(distanciaActual);
     }
 }
 

@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Pool;
 
@@ -53,7 +54,9 @@ public class GeneradorDeChunks : MonoBehaviour
             _tamanioTotal = _tamanioPrevio;
 
         if (divisionesDeDiferencias != Vector3Int.zero || _tamanioTotal != _tamanioPrevio)
-            ActualizarChunks(divisionesDeDiferencias);
+        {
+            //ActualizarChunks(divisionesDeDiferencias);
+        }
 
         ActualizarTamanio();
     }
@@ -102,35 +105,51 @@ public class GeneradorDeChunks : MonoBehaviour
 
     private void RellenarMatriz(GameObject[,,] chunks, Vector3Int tamanio)
     {
-        Vector3 posicion = transform.position;
+        Vector3 esquina = transform.position;
         for (int i = 0; i < 3; i++)
-            posicion[i] -= (_radio[i] * 2) * (tamanio[i] / 2); 
+            esquina[i] -= (_radio[i] * 2) * (tamanio[i] / 2);
+
+        List<Vector3> posiciones = new List<Vector3>();
 
         for (int i = 0; i < tamanio.x; i++)
+        {
             for (int j = 0; j < tamanio.y; j++)
+            {
                 for (int k = 0; k < tamanio.z; k++)
+                {
+                    posiciones.Add(PosicionChunk(esquina, i, j, k));   
                     if (chunks[i, j, k] == null)
-                    {
-                        Vector3Int posicionLocal = new Vector3Int(i, j, k);
-                        chunks[i, j, k] = GenerarChunk(posicion, posicionLocal);
-                    }
+                        GenerarChunk(esquina, chunks, i, j, k);
+                }
+
+
+
+                posiciones.Clear();
+            }
+        }
     }
 
-    private GameObject GenerarChunk(Vector3 esquina, Vector3Int posicionLocal)
-    {
-        GameObject chunk = _chunksPool.Get();
-        return GenerarChunk(esquina, posicionLocal, chunk);
-    }
+    
 
-    private GameObject GenerarChunk(Vector3 esquina, Vector3Int posicionLocal, GameObject chunk)
+    private Vector3 PosicionChunk(Vector3 esquina, int i, int j, int k)
     {
+        Vector3Int posicionLocal = new Vector3Int(i, j, k);
         Vector3 posicionChunk = esquina;
         for (int w = 0; w < 3; w++)
             posicionChunk[w] += (_radio[w] * 2) * posicionLocal[w];
+        return posicionChunk;
+    }
+
+    private void GenerarChunk(Vector3 esquina, GameObject[,,] chunks, int i, int j, int k)
+    {
+        GameObject chunk = _chunksPool.Get();
+
+        Vector3 posicionChunk = PosicionChunk(esquina, i, j, k);
 
         chunk.GetComponent<Chunk>().Inicializar(posicionChunk, _radio);
         chunk.GetComponent<LODPorDistancia>().Inicializar(_aSeguir);
-        return chunk;
+
+        chunks[i, j, k] = chunk;
     }
 
     private bool EnRango(Vector3Int posicionLocal, Vector3Int translacionRelativa, Vector3Int maximo)
