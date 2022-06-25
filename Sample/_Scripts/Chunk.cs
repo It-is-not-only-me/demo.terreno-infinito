@@ -2,10 +2,6 @@ using System.Collections;
 using UnityEngine;
 using ItIsNotOnlyMe.MarchingCubes;
 
-/*
- * La intencion de esta clase que sin importar el nivel de detalle
- * que sea capaz de representar bien su contendio usando marching cubes
- */
 public class Chunk : GenerarDatos
 {
     public override Bounds Bounds => _bounds;
@@ -88,7 +84,9 @@ public class Chunk : GenerarDatos
                     Vector3 posicion = posicionLocal + Bounds.center - Bounds.size / 2;
                     
                     Vector3 posicionPerlin = posicion * noiseScale + Vector3.one * 300;
-                    float valor = Perlin3D(posicionPerlin);
+                    //float valor = Perlin3D(posicionPerlin);
+                    float valor = Mathf.PerlinNoise(posicionPerlin.x, posicionPerlin.z);
+                    valor *= 10 - posicion.y;
 
                     datos[contador++].CargarDatos(posicion, valor);
                 }

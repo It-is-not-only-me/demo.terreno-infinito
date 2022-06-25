@@ -17,6 +17,7 @@ public class ChunkGroup : MonoBehaviour
         foreach (Vector3 posicion in posiciones)
         {
             GameObject chunkObject = chunkPool.Get();
+            chunkObject.transform.parent = transform;
 
             Chunk chunk = chunkObject.GetComponent<Chunk>();
             _chunks.Add(chunk);

@@ -9,29 +9,27 @@ public class GeneradorDeChunks : MonoBehaviour
     private static Vector3Int _tamanioMaximo = new Vector3Int(100, 100, 100);
 
     [SerializeField] private Transform _aSeguir;
-    [SerializeField] private GameObject _prefab;
+    [SerializeField] private GameObject _chunkPrefab;
     [SerializeField] private Vector3Int _tamanioTotal;
     [SerializeField] private Vector3 _radio;
-    
-    private GameObject[,,] _chunks;
-    private Vector3Int _tamanioPrevio;
+
+    [Space]
+
+    [SerializeField] int _cantidadDeChunks = 10;
+
 
     private ObjectPool<GameObject> _chunksPool;
     private Vector3 PosicionASeguir => _aSeguir.position;
 
 
-    // no usar una matriz
-
     private void Awake()
     {
-        _chunks = new GameObject[_tamanioTotal.x, _tamanioTotal.y, _tamanioTotal.z];
         ActualizarTamanio();
-
         Vector3Int cantidadDefualt = Vector3Int.Min(_tamanioTotal * 3 / 2, _tamanioMaximo);
         
 
         _chunksPool = new ObjectPool<GameObject>(
-            () => Instantiate(_prefab, transform),
+            () => Instantiate(_chunkPrefab),
             (chunk) => chunk.SetActive(true),
             (chunk) => chunk.SetActive(false),
             (chunk) => Destroy(chunk),
@@ -41,30 +39,12 @@ public class GeneradorDeChunks : MonoBehaviour
         );
 
         transform.position = NuevaPosicion();
-        RellenarMatriz(_chunks, _tamanioTotal);
-    }
-
-    private void Update()
-    {
-        Vector3 posicion = NuevaPosicion();
-        Vector3Int divisionesDeDiferencias = Divisiones(transform.position - posicion);
-        transform.position = posicion;
-
-        if (_tamanioTotal.x == 0 || _tamanioTotal.y == 0 || _tamanioTotal.z == 0)
-            _tamanioTotal = _tamanioPrevio;
-
-        if (divisionesDeDiferencias != Vector3Int.zero || _tamanioTotal != _tamanioPrevio)
-        {
-            //ActualizarChunks(divisionesDeDiferencias);
-        }
-
-        ActualizarTamanio();
+        CrearEspacio(_tamanioTotal);
     }
 
     private void ActualizarTamanio()
     {
         _tamanioTotal = Vector3Int.Min(_tamanioTotal, _tamanioMaximo);
-        _tamanioPrevio = _tamanioTotal;
     }
 
     private Vector3 NuevaPosicion()
@@ -76,34 +56,7 @@ public class GeneradorDeChunks : MonoBehaviour
         return posicion;
     }
 
-    private void ActualizarChunks(Vector3Int translacionRelativa)
-    {
-        GameObject[,,] nuevaIteracion = new GameObject[_tamanioTotal.x, _tamanioTotal.y, _tamanioTotal.z];
-        translacionRelativa *= -1;
-
-        for (int i = 0; i < _tamanioPrevio.x; i++)
-            for (int j = 0; j < _tamanioPrevio.y; j++)
-                for (int k = 0; k < _tamanioPrevio.z; k++)
-                {
-                    Vector3Int posicionLocal = new Vector3Int(i, j, k);
-                    if (EnRango(posicionLocal, translacionRelativa, _tamanioTotal))
-                    {
-                        nuevaIteracion[i - translacionRelativa.x, j - translacionRelativa.y, k - translacionRelativa.z] = _chunks[i, j, k];
-                        _chunks[i, j, k] = null;
-                    }
-                }
-
-        for (int i = 0; i < _tamanioPrevio.x; i++)
-            for (int j = 0; j < _tamanioPrevio.y; j++)
-                for (int k = 0; k < _tamanioPrevio.z; k++)
-                    if (_chunks[i, j, k] != null)
-                        _chunksPool.Release(_chunks[i, j, k]);
-
-        RellenarMatriz(nuevaIteracion, _tamanioTotal);
-        _chunks = nuevaIteracion;
-    }
-
-    private void RellenarMatriz(GameObject[,,] chunks, Vector3Int tamanio)
+    private async void CrearEspacio(Vector3Int tamanio)
     {
         Vector3 esquina = transform.position;
         for (int i = 0; i < 3; i++)
@@ -111,25 +64,29 @@ public class GeneradorDeChunks : MonoBehaviour
 
         List<Vector3> posiciones = new List<Vector3>();
 
+        int contador = 0;
+
         for (int i = 0; i < tamanio.x; i++)
         {
             for (int j = 0; j < tamanio.y; j++)
             {
-                for (int k = 0; k < tamanio.z; k++)
+                for (int k = 0; k < tamanio.z; k++, contador = (contador + 1) % (_cantidadDeChunks + 1))
                 {
-                    posiciones.Add(PosicionChunk(esquina, i, j, k));   
-                    if (chunks[i, j, k] == null)
-                        GenerarChunk(esquina, chunks, i, j, k);
+                    posiciones.Add(PosicionChunk(esquina, i, j, k));
+
+                    if (contador == _cantidadDeChunks)
+                        await Task.Yield();
+                    
                 }
 
-
-
+                GameObject chunkGroup = new GameObject("Chunk (" + (j + i * tamanio.y) + ")");
+                chunkGroup.transform.parent = transform;
+                chunkGroup.AddComponent<ChunkGroup>().Inicializar(posiciones, _radio, _chunksPool, _aSeguir);
                 posiciones.Clear();
+
             }
         }
     }
-
-    
 
     private Vector3 PosicionChunk(Vector3 esquina, int i, int j, int k)
     {
@@ -138,26 +95,6 @@ public class GeneradorDeChunks : MonoBehaviour
         for (int w = 0; w < 3; w++)
             posicionChunk[w] += (_radio[w] * 2) * posicionLocal[w];
         return posicionChunk;
-    }
-
-    private void GenerarChunk(Vector3 esquina, GameObject[,,] chunks, int i, int j, int k)
-    {
-        GameObject chunk = _chunksPool.Get();
-
-        Vector3 posicionChunk = PosicionChunk(esquina, i, j, k);
-
-        chunk.GetComponent<Chunk>().Inicializar(posicionChunk, _radio);
-        chunk.GetComponent<LODPorDistancia>().Inicializar(_aSeguir);
-
-        chunks[i, j, k] = chunk;
-    }
-
-    private bool EnRango(Vector3Int posicionLocal, Vector3Int translacionRelativa, Vector3Int maximo)
-    {
-        for (int i = 0; i < 3; i++)
-            if (posicionLocal[i] - translacionRelativa[i] < 0 || maximo[i] <= posicionLocal[i] - translacionRelativa[i])
-                return false;
-        return true;
     }
 
     private Vector3Int Divisiones(Vector3 posicion)
