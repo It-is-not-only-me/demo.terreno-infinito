@@ -263,7 +263,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _aSeguir: {fileID: 1804357006}
   _chunkPrefab: {fileID: 3646306603124034936, guid: 96814f8f5166a624ca8f2eede556e2e3, type: 3}
-  _tamanioTotal: {x: 100, y: 1, z: 100}
+  _tamanioTotal: {x: 10, y: 5, z: 10}
   _radio: {x: 20, y: 20, z: 20}
   _cantidadDeChunks: 30
 --- !u!1 &1785032231
@@ -359,6 +359,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1804357006}
+  - component: {fileID: 1804357008}
   - component: {fileID: 1804357007}
   m_Layer: 0
   m_Name: Jugador
@@ -392,7 +393,35 @@ MonoBehaviour:
   m_GameObject: {fileID: 1804357005}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6ba4ad1d24ae5124cb1d2605c0fabda2, type: 3}
+  m_Script: {fileID: 11500000, guid: bddca5710086dab4993306015e94ef1b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _rapidez: 50
+  _inputJugador: {fileID: 11400000, guid: cc5f9626eec16a64c905c0be7325c1ab, type: 2}
+  _camara: {fileID: 1785032233}
+  _rapidezAlCaminar: 3
+  _tiempoDeTransicionEnMovimiento: 0
+  _rapidezVertical: 6
+  _lockCursor: 0
+  _sensiblidadDelMouse: 10
+  _minMaxpitch: {x: -40, y: 85}
+  _tiempoDeTransicionEnRotacion: 0
+  _yaw: 0
+  _pitch: 0
+--- !u!143 &1804357008
+CharacterController:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1804357005}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Height: 1
+  m_Radius: 0.5
+  m_SlopeLimit: 45
+  m_StepOffset: 0.3
+  m_SkinWidth: 0.08
+  m_MinMoveDistance: 0.001
+  m_Center: {x: 0, y: 0, z: 0}
