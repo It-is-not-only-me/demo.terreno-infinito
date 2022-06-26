@@ -2,6 +2,7 @@ using System.Collections;
 using UnityEngine;
 using ItIsNotOnlyMe.MarchingCubes;
 
+[RequireComponent(typeof(GeneradorDeValores))]
 public class Chunk : GenerarDatos
 {
     public override Bounds Bounds => _bounds;
@@ -21,6 +22,8 @@ public class Chunk : GenerarDatos
     [SerializeField] private ConfiguracionLOD _configuracionLOD;
 
     private DeterminarLOD _determinarLOD;
+    private GeneradorDeValores _generadorDeValores;
+
     private Vector3 _radio;
     private Bounds _bounds;
     private int _lodAnterior;
@@ -30,6 +33,9 @@ public class Chunk : GenerarDatos
     {
         if (!TryGetComponent(out _determinarLOD))
             Debug.LogError("Se necesita una forma de determinar el nivel de detalle");
+
+        if (!TryGetComponent(out _generadorDeValores))
+            Debug.LogError("Se necesita una forma de generar datos");
     }
 
     public void Inicializar(Vector3 posicion, Vector3 radio)
@@ -84,9 +90,8 @@ public class Chunk : GenerarDatos
                     Vector3 posicion = posicionLocal + Bounds.center - Bounds.size / 2;
                     
                     Vector3 posicionPerlin = posicion * noiseScale + Vector3.one * 300;
-                    //float valor = Perlin3D(posicionPerlin);
-                    float valor = Mathf.PerlinNoise(posicionPerlin.x, posicionPerlin.z);
-                    valor *= 10 - posicion.y;
+                    posicionPerlin.y = posicion.y;
+                    float valor = 1 - _generadorDeValores.Valor(posicionPerlin);
 
                     datos[contador++].CargarDatos(posicion, valor);
                 }
@@ -99,21 +104,6 @@ public class Chunk : GenerarDatos
         for (int i = 0; i < 3; i++)
             posicionFinal[i] = Mathf.Lerp(0, anchoTotal[i], ((float)posicion[i]) / (puntosPorEje[i] - 1));
         return posicionFinal;
-    }
-
-    private float Perlin3D(Vector3 posicion)
-    {
-        float x = posicion.x, y = posicion.y, z = posicion.z;
-
-        float XY = Mathf.PerlinNoise(x, y);
-        float YZ = Mathf.PerlinNoise(y, z);
-        float ZX = Mathf.PerlinNoise(z, x);
-
-        float YX = Mathf.PerlinNoise(y, z);
-        float ZY = Mathf.PerlinNoise(z, y);
-        float XZ = Mathf.PerlinNoise(x, z);
-
-        return (XY + YZ + ZX + YX + ZY + XZ) / 6f;
     }
 
     private void OnDrawGizmos()
