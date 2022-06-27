@@ -499,7 +499,7 @@ MonoBehaviour:
   _rapidezAlCaminar: 10
   _tiempoDeTransicionEnMovimiento: 0
   _rapidezVertical: 10
-  _lockCursor: 0
+  _lockCursor: 1
   _sensiblidadDelMouse: 3
   _minMaxpitch: {x: -40, y: 85}
   _tiempoDeTransicionEnRotacion: 0

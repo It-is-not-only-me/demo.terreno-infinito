@@ -88,4 +88,5 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _piso: 0
-  _amplitud: 1
+  _cercania: 20
+  _amplitud: 20

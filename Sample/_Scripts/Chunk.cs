@@ -91,7 +91,7 @@ public class Chunk : GenerarDatos
                     
                     Vector3 posicionPerlin = posicion * noiseScale + Vector3.one * 300;
                     posicionPerlin.y = posicion.y;
-                    float valor = 1 - _generadorDeValores.Valor(posicionPerlin);
+                    float valor = _generadorDeValores.Valor(posicionPerlin);
 
                     datos[contador++].CargarDatos(posicion, valor);
                 }
