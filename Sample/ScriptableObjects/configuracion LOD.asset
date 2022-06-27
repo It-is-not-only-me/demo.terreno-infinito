@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: configuracion LOD
   m_EditorClassIdentifier: 
   _lodDetalles:
-  - NumeroDePuntosPorNivel: {x: 25, y: 25, z: 25}
+  - NumeroDePuntosPorNivel: {x: 40, y: 40, z: 40}
     DistanciaMaxima: 80
-  - NumeroDePuntosPorNivel: {x: 20, y: 20, z: 20}
+  - NumeroDePuntosPorNivel: {x: 30, y: 30, z: 30}
     DistanciaMaxima: 150
-  - NumeroDePuntosPorNivel: {x: 18, y: 18, z: 18}
+  - NumeroDePuntosPorNivel: {x: 25, y: 25, z: 25}
     DistanciaMaxima: 300
   - NumeroDePuntosPorNivel: {x: 15, y: 15, z: 15}
     DistanciaMaxima: 400

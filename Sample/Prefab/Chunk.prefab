@@ -87,6 +87,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 22075d0464e5b2a4d8a85a87f375d774, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _piso: 0
-  _cercania: 20
+  _piso: 20
+  _cercania: 40
   _amplitud: 20
+  _frecuencias:
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5
+  - 6

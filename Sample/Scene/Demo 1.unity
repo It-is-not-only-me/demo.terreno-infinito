@@ -360,8 +360,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _aSeguir: {fileID: 1804357006}
   _chunkPrefab: {fileID: 3646306603124034936, guid: 96814f8f5166a624ca8f2eede556e2e3, type: 3}
-  _tamanioTotal: {x: 10, y: 2, z: 10}
-  _radio: {x: 20, y: 20, z: 20}
+  _tamanioTotal: {x: 15, y: 3, z: 15}
+  _radio: {x: 15, y: 15, z: 15}
   _cantidadDeChunks: 1000
 --- !u!1 &1785032231
 GameObject:
