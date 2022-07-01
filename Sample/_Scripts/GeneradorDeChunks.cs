@@ -26,8 +26,8 @@ public class GeneradorDeChunks : MonoBehaviour
     {
         ActualizarTamanio();
         Vector3Int cantidadDefualt = Vector3Int.Min(_tamanioTotal * 3 / 2, _tamanioMaximo);
-        
 
+        transform.position = NuevaPosicion();
         _chunksPool = new ObjectPool<GameObject>(
             () => Instantiate(_chunkPrefab),
             (chunk) => chunk.SetActive(true),
@@ -38,7 +38,6 @@ public class GeneradorDeChunks : MonoBehaviour
             _tamanioMaximo.x * _tamanioMaximo.y * _tamanioMaximo.z
         );
 
-        transform.position = NuevaPosicion();
         CrearEspacio(_tamanioTotal);
     }
 
@@ -58,34 +57,71 @@ public class GeneradorDeChunks : MonoBehaviour
 
     private async void CrearEspacio(Vector3Int tamanio)
     {
-        Vector3 esquina = transform.position;
-        for (int i = 0; i < 3; i++)
-            esquina[i] -= (_radio[i] * 2) * (tamanio[i] / 2);
-
         List<Vector3> posiciones = new List<Vector3>();
-
+        List<Vector3> posicionesDeChunks = PosicionesDisponibles(tamanio);
         int contador = 0;
 
-        for (int i = 0; i < tamanio.x; i++)
+        foreach (Vector3 posicionChunk in posicionesDeChunks)
         {
-            for (int j = 0; j < tamanio.y; j++)
+            posiciones.Add(posicionChunk);
+            contador++;
+
+            if (contador % _cantidadDeChunks == 0)
             {
-                for (int k = 0; k < tamanio.z; k++, contador = (contador + 1) % (_cantidadDeChunks + 1))
-                {
-                    posiciones.Add(PosicionChunk(esquina, i, j, k));
-
-                    if (contador == _cantidadDeChunks)
-                        await Task.Yield();
-                    
-                }
-
-                GameObject chunkGroup = new GameObject("Chunk (" + (j + i * tamanio.y) + ")");
-                chunkGroup.transform.parent = transform;
-                chunkGroup.AddComponent<ChunkGroup>().Inicializar(posiciones, _radio, _chunksPool, _aSeguir);
+                CrearGrupo(posiciones);
                 posiciones.Clear();
-
+                await Task.Yield();
             }
         }
+
+        if (posiciones.Count > 0)
+            CrearGrupo(posiciones);
+    }
+
+    private void CrearGrupo(List<Vector3> posiciones)
+    {
+        GameObject chunkGroup = new GameObject("Grupo chunk");
+        chunkGroup.transform.parent = transform;
+        chunkGroup.AddComponent<ChunkGroup>().Inicializar(posiciones, _radio, _chunksPool, _aSeguir);
+    }
+
+    private List<Vector3> PosicionesDisponibles(Vector3Int tamanio)
+    {
+        Vector3 centro = transform.position;
+
+        Vector3 esquina = Vector3.zero;
+        for (int i = 0; i < 3; i++)
+            esquina[i] -= (_radio[i] * 2) * (tamanio[i] / 2);
+        esquina += centro;
+
+        List<Vector3> posicionesDisponibles = new List<Vector3>();
+
+        for (int i = 0; i < tamanio.x; i++)
+            for (int j = 0; j < tamanio.y; j++)
+                for (int k = 0; k < tamanio.z; k++)
+                    posicionesDisponibles.Add(PosicionChunk(esquina, i, j, k));
+
+        return OrdenarPorDistanciaAlCentro(posicionesDisponibles, centro);
+    }
+
+    private List<Vector3> OrdenarPorDistanciaAlCentro(List<Vector3> posiciones, Vector3 centro)
+    {
+        for (int i = 0; i < posiciones.Count; i++)
+        {
+            float primeraDistancia = Vector3.Distance(centro, posiciones[i]);
+            for (int j = i + 1; j < posiciones.Count; j++)
+            {
+                float segundaDistancia = Vector3.Distance(centro, posiciones[j]);
+                if (primeraDistancia < segundaDistancia)
+                {
+                    Vector3 auxilear = posiciones[i];
+                    posiciones[i] = posiciones[j];
+                    posiciones[j] = auxilear;
+                }
+            }
+        }
+        posiciones.Reverse();
+        return posiciones;
     }
 
     private Vector3 PosicionChunk(Vector3 esquina, int i, int j, int k)

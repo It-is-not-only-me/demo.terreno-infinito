@@ -339,7 +339,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1110899857}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 11.9}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -360,9 +360,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _aSeguir: {fileID: 1804357006}
   _chunkPrefab: {fileID: 3646306603124034936, guid: 96814f8f5166a624ca8f2eede556e2e3, type: 3}
-  _tamanioTotal: {x: 15, y: 3, z: 15}
+  _tamanioTotal: {x: 10, y: 1, z: 10}
   _radio: {x: 15, y: 15, z: 15}
-  _cantidadDeChunks: 1000
+  _cantidadDeChunks: 2
 --- !u!1 &1785032231
 GameObject:
   m_ObjectHideFlags: 0
