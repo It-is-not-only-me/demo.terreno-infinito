@@ -21,6 +21,8 @@ public class GeneradorDeChunks : MonoBehaviour
     private ObjectPool<GameObject> _chunksPool;
     private Vector3 PosicionASeguir => _aSeguir.position;
 
+    private List<GameObject> _chunksList;
+    private Vector3 _posicionAnterior;
 
     private void Awake()
     {
@@ -38,12 +40,25 @@ public class GeneradorDeChunks : MonoBehaviour
             _tamanioMaximo.x * _tamanioMaximo.y * _tamanioMaximo.z
         );
 
-        CrearEspacio(_tamanioTotal);
+        _chunksList = new List<GameObject>();
+        _posicionAnterior = NuevaPosicion();
+        ActualizarEspacio(_tamanioTotal);
     }
 
     private void ActualizarTamanio()
     {
         _tamanioTotal = Vector3Int.Min(_tamanioTotal, _tamanioMaximo);
+    }
+
+    private void Update()
+    {
+        Vector3 nuevaPosicion = NuevaPosicion();
+        if (_posicionAnterior == nuevaPosicion)
+            return;
+
+        _posicionAnterior = nuevaPosicion;
+        ActualizarTamanio();
+        ActualizarEspacio(_tamanioTotal);
     }
 
     private Vector3 NuevaPosicion()
@@ -55,40 +70,76 @@ public class GeneradorDeChunks : MonoBehaviour
         return posicion;
     }
 
-    private async void CrearEspacio(Vector3Int tamanio)
+    private async void ActualizarEspacio(Vector3Int tamanio)
     {
-        List<Vector3> posiciones = new List<Vector3>();
-        List<Vector3> posicionesDeChunks = PosicionesDisponibles(tamanio);
-        int contador = 0;
+        Vector3 posicion = NuevaPosicion();
+        List<Vector3> posicionesDeChunks = PosicionesDisponibles(posicion, tamanio);
+        List<Vector3> posicionesNuevas = new List<Vector3>();
 
+        // eliminando chunks no necesarios
+        List<GameObject> chunksAEliminar = new List<GameObject>();
+        foreach (GameObject chunk in _chunksList)
+        {
+            bool existePosicion = false;
+            foreach (Vector3 posicionChunk in posicionesDeChunks)
+                existePosicion |= PosicionesIguales(chunk, posicionChunk);
+            if (!existePosicion)
+                chunksAEliminar.Add(chunk);
+        }
+
+        chunksAEliminar.ForEach(chunk =>
+        {
+            _chunksList.Remove(chunk);
+            _chunksPool.Release(chunk);
+        });
+
+        // posiciones posibles
         foreach (Vector3 posicionChunk in posicionesDeChunks)
         {
-            posiciones.Add(posicionChunk);
+            bool existeChunk = false;
+            foreach (GameObject chunk in _chunksList)
+                existeChunk |= PosicionesIguales(chunk, posicionChunk);
+            if (!existeChunk)
+                posicionesNuevas.Add(posicionChunk);
+        }
+
+        int contador = 0;
+        foreach (Vector3 posicionChunk in posicionesNuevas)
+        {
+            _chunksList.Add(CrearChunk(posicionChunk));
             contador++;
 
             if (contador % _cantidadDeChunks == 0)
-            {
-                CrearGrupo(posiciones);
-                posiciones.Clear();
                 await Task.Yield();
-            }
         }
-
-        if (posiciones.Count > 0)
-            CrearGrupo(posiciones);
     }
 
-    private void CrearGrupo(List<Vector3> posiciones)
+    private bool PosicionesIguales(GameObject chunk, Vector3 posicion)
     {
-        GameObject chunkGroup = new GameObject("Grupo chunk");
-        chunkGroup.transform.parent = transform;
-        chunkGroup.AddComponent<ChunkGroup>().Inicializar(posiciones, _radio, _chunksPool, _aSeguir);
+        bool iguales = true;
+        float epsilon = 0.01f;
+        Vector3 posicionChunk = chunk.transform.position;
+
+        for (int i = 0; i < 3; i++)
+            iguales &= posicion[i] - epsilon < posicionChunk[i] && posicionChunk[i] < posicion[i] + epsilon;
+
+        return iguales;
     }
 
-    private List<Vector3> PosicionesDisponibles(Vector3Int tamanio)
+    private GameObject CrearChunk(Vector3 posicion)
     {
-        Vector3 centro = transform.position;
+        GameObject chunkObject = _chunksPool.Get();
+        chunkObject.transform.parent = transform;
 
+        Chunk chunk = chunkObject.GetComponent<Chunk>();
+        chunk.Inicializar(posicion, _radio);
+        chunkObject.GetComponent<LODPorDistancia>().Inicializar(_aSeguir);
+
+        return chunkObject;
+    }
+
+    private List<Vector3> PosicionesDisponibles(Vector3 centro, Vector3Int tamanio)
+    {
         Vector3 esquina = Vector3.zero;
         for (int i = 0; i < 3; i++)
             esquina[i] -= (_radio[i] * 2) * (tamanio[i] / 2);
