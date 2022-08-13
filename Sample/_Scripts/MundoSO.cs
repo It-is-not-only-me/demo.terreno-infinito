@@ -7,8 +7,7 @@ using System.Collections;
 public class MundoSO : ScriptableObject
 {
     [SerializeField] private Vector3 _posicion, _tamanio;
-    [SerializeField] private Vector3Int _puntosPorEje;
-    [SerializeField] private int _profunidad;
+    [SerializeField] private int _puntosPorEje;
 
     [Space]
 
@@ -18,15 +17,27 @@ public class MundoSO : ScriptableObject
 
     private void OnEnable()
     {
-        _datos = new Octree<Dato>(_posicion, _tamanio, _profunidad);
+        int profunidad = CalcularProfunidad();
+        Debug.Log(profunidad);
+        _datos = new Octree<Dato>(_posicion, _tamanio, profunidad);
         CargarDatos();
+    }
+
+    private int CalcularProfunidad()
+    {
+        int profunidad = 0;
+        
+        for (int nodosVisibles = 1; nodosVisibles < _puntosPorEje; nodosVisibles *= 2)
+            profunidad++;
+
+        return profunidad;
     }
 
     private void CargarDatos()
     {
         Vector3 desfase = Vector3.zero;
         for (int i = 0; i < 3; i++)
-            desfase[i] = _tamanio[i] / _puntosPorEje[i];
+            desfase[i] = _tamanio[i] / _puntosPorEje;
 
         foreach (Vector3Int posicionRelativa in ObtenerPosicionesRelativas())
         {
@@ -42,9 +53,9 @@ public class MundoSO : ScriptableObject
     private IEnumerable ObtenerPosicionesRelativas()
     {
         Vector3Int posicionRelativa = Vector3Int.zero;
-        for (int i = 0; i < _puntosPorEje.x; i++)
-            for (int j = 0; j < _puntosPorEje.x; j++)
-                for (int k = 0; k < _puntosPorEje.x; k++)
+        for (int i = 0; i < _puntosPorEje; i++)
+            for (int j = 0; j < _puntosPorEje; j++)
+                for (int k = 0; k < _puntosPorEje; k++)
                 {
                     posicionRelativa.Set(i, j, k);
                     yield return posicionRelativa;

@@ -14,6 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _posicion: {x: 0, y: 0, z: 0}
   _tamanio: {x: 128, y: 128, z: 128}
-  _puntosPorEje: {x: 128, y: 128, z: 128}
-  _profunidad: 6
+  _puntosPorEje: 128
   _generadorDeDatos: {fileID: 11400000, guid: 8c17b724e1e423f468ccff12958d7852, type: 2}
